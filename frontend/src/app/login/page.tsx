@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { Box, Button, Container, TextField, Typography, Card, CardContent, Link as MuiLink, Divider } from '@mui/material';
 import { useAuth } from '@/context/AuthContext';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -15,25 +15,31 @@ function LoginForm() {
     const { login } = useAuth();
     const searchParams = useSearchParams();
     const router = useRouter();
+    const ssoProcessed = useRef(false);
 
+    // Handle SSO callback — extract token from URL params
     useEffect(() => {
+        if (ssoProcessed.current) return;
+
         const token = searchParams.get('token');
         const userStr = searchParams.get('user');
         const ssoError = searchParams.get('error');
 
         if (ssoError) {
             setError('Single Sign-On failed. Please try again.');
-            // Clean URL
             router.replace('/login');
         } else if (token && userStr) {
+            ssoProcessed.current = true;
             try {
                 const user = JSON.parse(decodeURIComponent(userStr));
+                console.log('[SSO] Token received, logging in user:', user.email);
                 login(token, user);
             } catch (e) {
-                console.error('Failed to parse user from query', e);
+                console.error('[SSO] Failed to parse user from query', e);
+                setError('Failed to process login. Please try again.');
             }
         }
-    }, [searchParams, login, router]);
+    }, [searchParams]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
