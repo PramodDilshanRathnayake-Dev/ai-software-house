@@ -1,5 +1,6 @@
 import { generateContent, getGeminiClient } from '../../services/gemini';
 import MissionContext, { ScrumTask, IMissionContext } from '../../models/MissionContext';
+import { getSocket } from '../../services/socket';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -51,6 +52,14 @@ export class BuilderAgent {
             { projectId: mission.projectId, 'backlog.id': task.id },
             { $set: { 'backlog.$.status': 'IN_PROGRESS' } }
         );
+
+        const io = getSocket();
+        if (io) {
+            io.to(mission.projectId).emit('task_updated', {
+                taskId: task.id,
+                status: 'IN_PROGRESS'
+            });
+        }
 
         const prompt = `
 You are 'The Builder', an expert Software Engineer Dev Agent.
@@ -110,6 +119,13 @@ Decide what the most appropriate single source code file (e.g. 'src/App.js', 'se
                     { projectId: mission.projectId, 'backlog.id': task.id },
                     { $set: { 'backlog.$.status': 'REVIEW' } }
                 );
+
+                if (io) {
+                    io.to(mission.projectId).emit('task_updated', {
+                        taskId: task.id,
+                        status: 'REVIEW'
+                    });
+                }
             } else {
                 throw new Error('Gemini did not return filePath or codeContent');
             }

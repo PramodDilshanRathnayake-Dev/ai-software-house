@@ -39,6 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuditorAgent = void 0;
 const gemini_1 = require("../../services/gemini");
 const MissionContext_1 = __importDefault(require("../../models/MissionContext"));
+const socket_1 = require("../../services/socket");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 class AuditorAgent {
@@ -122,6 +123,13 @@ Return a JSON object with two fields:
             const nextStatus = result.passed ? 'DONE' : 'TODO';
             // Update task status based on audit result
             await MissionContext_1.default.findOneAndUpdate({ projectId: mission.projectId, 'backlog.id': task.id }, { $set: { 'backlog.$.status': nextStatus } });
+            const io = (0, socket_1.getSocket)();
+            if (io) {
+                io.to(mission.projectId).emit('task_updated', {
+                    taskId: task.id,
+                    status: nextStatus
+                });
+            }
         }
         catch (error) {
             console.error(`[Auditor] Failed to audit task ${task.id}:`, error);

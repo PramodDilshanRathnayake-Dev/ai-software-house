@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { handleClientIntake, getMissionStatus } from '../controllers/strategist.controller';
+import { handleClientIntake, getMissionStatus, handleMidSprintDiscussion } from '../controllers/strategist.controller';
 
 const router = Router();
 
@@ -8,5 +8,8 @@ router.post('/intake', handleClientIntake);
 
 // GET /api/strategist/missions
 router.get('/missions', getMissionStatus);
+
+// POST /api/strategist/missions/:projectId/discuss
+router.post('/missions/:projectId/discuss', handleMidSprintDiscussion);
 
 export default router;

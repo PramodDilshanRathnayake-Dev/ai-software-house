@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { Send, Bot } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { CircularProgress } from '@mui/material';
 
 const steps = [
     { id: 1, label: 'Project Overview', active: true },
@@ -10,33 +12,77 @@ const steps = [
     { id: 4, label: 'Timeline', active: false },
     { id: 5, label: 'Review', active: false },
 ];
-
 export function IntakeChat() {
+    const router = useRouter();
     const [messages, setMessages] = useState([
         {
             role: 'agent',
             name: 'Strategist',
-            content: "Hello! 👋 I'm Strategist. To get started, please share a few details about your project. What is the core goal of your software?",
+            content: "Hello! 👋 I'm Strategist. To get started, what is the name of your new project?",
         },
     ]);
     const [input, setInput] = useState('');
+    const [setupPhase, setSetupPhase] = useState<'name' | 'requirements' | 'submitting'>('name');
+    const [projectName, setProjectName] = useState('');
 
-    const handleSend = (e: React.FormEvent) => {
+    const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim()) return;
-        setMessages([...messages, { role: 'user', name: 'You', content: input }]);
+        const text = input.trim();
+        if (!text) return;
+
+        setMessages((prev) => [...prev, { role: 'user', name: 'You', content: text }]);
         setInput('');
-        // Simulate typing delay for agent
-        setTimeout(() => {
+
+        if (setupPhase === 'name') {
+            setProjectName(text);
+            setSetupPhase('requirements');
+            setTimeout(() => {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        role: 'agent',
+                        name: 'Strategist',
+                        content: `Got it. "${text}" sounds great. Now, please describe your vision and the core requirements for the system.`
+                    }
+                ]);
+            }, 600);
+        } else if (setupPhase === 'requirements') {
+            setSetupPhase('submitting');
             setMessages((prev) => [
                 ...prev,
                 {
                     role: 'agent',
                     name: 'Strategist',
-                    content: "That sounds like a great vision. Let's talk about the key features..."
+                    content: "Processing your requirements... Generating PRD and Scrum Backlog... This will take a moment."
                 }
             ]);
-        }, 1500);
+
+            try {
+                const response = await fetch('http://localhost:8000/api/strategist/intake', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ projectName: projectName || 'New Project', clientRequest: text })
+                });
+
+                const data = await response.json();
+                if (response.ok && data.missionId) {
+                    router.push(`/mission/${data.missionId}`);
+                } else {
+                    setMessages((prev) => [
+                        ...prev,
+                        { role: 'agent', name: 'Strategist', content: `Error creating mission: ${data.error || 'Unknown error'}` }
+                    ]);
+                    setSetupPhase('requirements'); // Allow retry
+                }
+            } catch (err: any) {
+                console.error(err);
+                setMessages((prev) => [
+                    ...prev,
+                    { role: 'agent', name: 'Strategist', content: `Connection error: ${err.message}. Ensure backend is running.` }
+                ]);
+                setSetupPhase('requirements'); // Allow retry
+            }
+        }
     };
 
     return (
@@ -92,10 +138,10 @@ export function IntakeChat() {
                         />
                         <button
                             type="submit"
-                            disabled={!input.trim()}
+                            disabled={!input.trim() || setupPhase === 'submitting'}
                             className="mb-1 mr-1 px-4 py-2 bg-gradient-to-r from-cyan-400 to-indigo-500 hover:from-cyan-300 hover:to-indigo-400 text-white font-medium rounded-xl flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                         >
-                            Send <Send size={16} />
+                            {setupPhase === 'submitting' ? <CircularProgress size={16} color="inherit" /> : 'Send'} <Send size={16} />
                         </button>
                     </form>
                 </div>

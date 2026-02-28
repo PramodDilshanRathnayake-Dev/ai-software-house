@@ -7,4 +7,6 @@ const router = (0, express_1.Router)();
 router.post('/intake', strategist_controller_1.handleClientIntake);
 // GET /api/strategist/missions
 router.get('/missions', strategist_controller_1.getMissionStatus);
+// POST /api/strategist/missions/:projectId/discuss
+router.post('/missions/:projectId/discuss', strategist_controller_1.handleMidSprintDiscussion);
 exports.default = router;

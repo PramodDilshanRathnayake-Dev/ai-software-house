@@ -3,6 +3,7 @@ import { MuiThemeWrapper } from '@/components/MuiThemeWrapper';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider as NextThemesProvider } from '@/components/ThemeProvider';
 import { Navbar } from '@/components/Navbar';
+import { AuthProvider } from '@/context/AuthContext';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -25,11 +26,13 @@ export default function RootLayout({
         <AppRouterCacheProvider>
           <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
             <MuiThemeWrapper>
-              <CssBaseline />
-              <Navbar />
-              <main className="min-h-screen pt-4 pb-12">
-                {children}
-              </main>
+              <AuthProvider>
+                <CssBaseline />
+                <Navbar />
+                <main className="min-h-screen pt-4 pb-12">
+                  {children}
+                </main>
+              </AuthProvider>
             </MuiThemeWrapper>
           </NextThemesProvider>
         </AppRouterCacheProvider>

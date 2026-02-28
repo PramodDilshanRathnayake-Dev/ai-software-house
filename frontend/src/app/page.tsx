@@ -1,6 +1,8 @@
 'use client';
 import { Box, Container, Typography, Card, CardContent, Chip, Button, Divider } from '@mui/material';
 import { useState, useEffect } from 'react';
+import { fetchWithAuth } from '@/lib/fetchWithAuth';
+import { io } from 'socket.io-client';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CodeIcon from '@mui/icons-material/Code';
 import BugReportIcon from '@mui/icons-material/BugReport';
@@ -12,11 +14,26 @@ export default function Home() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [missions, setMissions] = useState<any[]>([]);
 
-  useEffect(() => {
-    fetch('http://localhost:4000/api/strategist/missions')
+  const fetchMissions = () => {
+    fetchWithAuth('http://localhost:8000/api/strategist/missions')
       .then(res => res.json())
       .then(data => setMissions(data))
       .catch(err => console.error('Failed to fetch missions:', err));
+  };
+
+  useEffect(() => {
+    fetchMissions();
+
+    const socket = io('http://localhost:8000');
+
+    // Listen for global mission updates from SRE or other agents
+    socket.on('mission_updated', () => {
+      fetchMissions();
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const agents = [
@@ -115,8 +132,13 @@ export default function Home() {
                     {mission.sharedState?.originalRequest || 'No description available'}
                   </Typography>
                   <Link href={`/mission/${mission.projectId}`} passHref legacyBehavior>
-                    <Button variant="outlined" size="small" fullWidth>
-                      Open Mission Control
+                    <Button variant="outlined" size="small" fullWidth sx={{ mb: 1 }}>
+                      Mission Control
+                    </Button>
+                  </Link>
+                  <Link href={`/scrum?projectId=${mission.projectId}`} passHref legacyBehavior>
+                    <Button variant="contained" color="secondary" size="small" fullWidth>
+                      View Scrum Board
                     </Button>
                   </Link>
                 </CardContent>

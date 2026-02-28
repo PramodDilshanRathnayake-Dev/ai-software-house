@@ -1,5 +1,6 @@
 import { getGeminiClient } from '../../services/gemini';
 import MissionContext, { ScrumTask, IMissionContext } from '../../models/MissionContext';
+import { getSocket } from '../../services/socket';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -107,6 +108,14 @@ Return a JSON object with two fields:
                 { projectId: mission.projectId, 'backlog.id': task.id },
                 { $set: { 'backlog.$.status': nextStatus } }
             );
+
+            const io = getSocket();
+            if (io) {
+                io.to(mission.projectId).emit('task_updated', {
+                    taskId: task.id,
+                    status: nextStatus
+                });
+            }
 
         } catch (error) {
             console.error(`[Auditor] Failed to audit task ${task.id}:`, error);

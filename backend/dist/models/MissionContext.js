@@ -40,12 +40,17 @@ const ScrumTaskSchema = new mongoose_1.Schema({
     description: { type: String, required: true },
     status: { type: String, enum: ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'], default: 'TODO' },
     assignee: { type: String, enum: ['STRATEGIST', 'BUILDER', 'AUDITOR', 'SRE'] },
+    storyPoints: { type: Number, default: 0 },
+    subtasks: { type: [{ title: String, done: Boolean }], default: [] },
+    comments: { type: [{ author: String, text: String, createdAt: { type: Date, default: Date.now } }], default: [] },
 });
 const MissionContextSchema = new mongoose_1.Schema({
+    clientId: { type: String, default: 'guest-client' },
     projectId: { type: String, required: true, unique: true },
     prd: { type: String, default: '' },
     backlog: { type: [ScrumTaskSchema], default: [] },
     currentSprint: { type: String, default: 'Sprint 1' },
+    sprintStatus: { type: String, enum: ['NOT_STARTED', 'ACTIVE', 'COMPLETED'], default: 'NOT_STARTED' },
     status: { type: String, enum: ['INTAKE', 'DEVELOPMENT', 'AUDIT', 'DEPLOYMENT', 'DEPLOYED'], default: 'INTAKE' },
     artifacts: {
         codeRepositoryUrl: { type: String, default: '' },

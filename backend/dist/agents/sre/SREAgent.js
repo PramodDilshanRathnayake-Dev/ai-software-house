@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SREAgent = void 0;
 const MissionContext_1 = __importDefault(require("../../models/MissionContext"));
+const socket_1 = require("../../services/socket");
 class SREAgent {
     /**
      * Simulates a deployment to Cloud Run and marks the mission as DEPLOYED.
@@ -35,6 +36,12 @@ class SREAgent {
         console.log(`[SRE][CD] Deploying to AWS ECS / Google Cloud Run... LIVE`);
         // Mark mission overall status as DEPLOYED
         await MissionContext_1.default.findOneAndUpdate({ projectId: missionId }, { $set: { status: 'DEPLOYED' } });
+        const io = (0, socket_1.getSocket)();
+        if (io) {
+            io.to(missionId).emit('mission_updated', {
+                status: 'DEPLOYED'
+            });
+        }
         console.log(`[SRE] Mission ${missionId} has been successfully deployed to Production.`);
     }
     delay(ms) {

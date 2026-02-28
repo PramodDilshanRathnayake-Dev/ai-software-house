@@ -1,4 +1,12 @@
 services:
+  database:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+
   backend:
     build:
       context: ./backend
@@ -10,6 +18,9 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=8000
+      - MONGODB_URI=mongodb://database:27017/ai-software-house
+    depends_on:
+      - database
     restart: unless-stopped
 
   frontend:
@@ -24,3 +35,6 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+volumes:
+  mongodb_data:

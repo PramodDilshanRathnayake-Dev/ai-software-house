@@ -11,7 +11,7 @@ This document outlines the Minimum Viable Product (MVP) features for the AI Soft
 
 ### 2. Multi-Agent System Core
 - [x] **Strategist Agent**: Backend logic and integration for scoping, requirement gathering, and planning.
-- [x] **Builder Agent**: Backend logic, API endpoints, and frontend integration for executing tasks.
+- [x] **Builder Agent (Dev)**: Backend logic, API endpoints, and frontend integration for executing tasks.
 
 ### 3. User Interface
 - [x] **Main Intake Page**: UI for initial project/task submission and interaction with the Strategist.
@@ -31,19 +31,29 @@ This document outlines the Minimum Viable Product (MVP) features for the AI Soft
 - [ ] Add Profile management section to the header navigation.
 - [ ] Session management and basic access control.
 
-### 2. Enhanced Kanban & Sprint Management
+### 2. Enhanced Scrum Board & Jira-like Features
+- [ ] **Agent-Managed States**: Scrum board states (To Do, In Progress, Done) should be managed autonomously by the agents, moving away from manual drag-and-drop to avoid confusion.
+- [ ] **Comprehensive Task Cards**: Scrum board items must include Story Points, Progress tracking, and Subtasks.
 - [ ] **Interactive Artifacts**: Make Kanban items clickable to view associated artifacts, plans, and code diffs.
+- [ ] **Manual Comments (Revisit)**: Option for clients/users to put manual comments on tickets as a "revisit" or feedback mechanism.
 - [ ] **Dynamic Backlog**: Enable new requirement discussions with the Strategist to be seamlessly added to the backlog during active sprints.
-- [ ] Fully cross-functional Drag-and-Drop state management for the Scrum board.
 
-### 3. UI/UX Polish
+### 3. Client-Agent Communication
+- [ ] **Notification Panel & Inbox**: Implement a dedicated inbox/notification center for the team to communicate with the client regarding required details (e.g., requesting API keys, AWS configurations, environment variables).
+
+### 4. Agent Perspective Views (Main Navigations)
+- [ ] **Dev Agent Perspective**: Add a view showing the GIT branch tree (following the feature-branching model used in this project).
+- [ ] **QA Agent Perspective**: Add a dynamic Mind Map view based on requirements, displaying test status for each mind map item.
+- [ ] **Ops Agent Perspective**: Add a Container Monitoring dashboard for infrastructure visibility.
+
+### 5. UI/UX Polish
 - [ ] Fix broken Light Theme styling and ensure smooth theme switching.
 - [ ] General responsiveness and mobile-friendly tweaks for the internal dashboard.
 
-### 4. Deployment & Cloud Infrastructure
+### 6. Deployment & Cloud Infrastructure
 - [ ] Execute AWS Deployment Strategy for Staging environment.
 - [ ] Execute AWS Deployment Strategy for Production environment.
 - [ ] Finalize CI/CD pipeline actions (GitHub Actions/CodePipeline) for automated testing and deployment.
 
-### 5. System Interactivity (Optional MVP / Fast Follow)
+### 7. System Interactivity (Optional MVP / Fast Follow)
 - [ ] Real-time WebSocket server for live agent typing/progress updates on the frontend.

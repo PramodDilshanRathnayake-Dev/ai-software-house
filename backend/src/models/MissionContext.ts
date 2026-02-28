@@ -6,13 +6,18 @@ export interface ScrumTask {
     description: string;
     status: 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
     assignee?: 'STRATEGIST' | 'BUILDER' | 'AUDITOR' | 'SRE';
+    storyPoints?: number;
+    subtasks?: { title: string; done: boolean }[];
+    comments?: { author: string; text: string; createdAt: Date }[];
 }
 
 export interface IMissionContext extends Document {
+    clientId: string;
     projectId: string;
     prd: string;
     backlog: ScrumTask[];
     currentSprint: string;
+    sprintStatus: 'NOT_STARTED' | 'ACTIVE' | 'COMPLETED';
     status: 'INTAKE' | 'DEVELOPMENT' | 'AUDIT' | 'DEPLOYMENT' | 'DEPLOYED';
     artifacts: {
         codeRepositoryUrl: string;
@@ -30,13 +35,18 @@ const ScrumTaskSchema = new Schema<ScrumTask>({
     description: { type: String, required: true },
     status: { type: String, enum: ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'], default: 'TODO' },
     assignee: { type: String, enum: ['STRATEGIST', 'BUILDER', 'AUDITOR', 'SRE'] },
+    storyPoints: { type: Number, default: 0 },
+    subtasks: { type: [{ title: String, done: Boolean }], default: [] },
+    comments: { type: [{ author: String, text: String, createdAt: { type: Date, default: Date.now } }], default: [] },
 });
 
 const MissionContextSchema = new Schema<IMissionContext>({
+    clientId: { type: String, default: 'guest-client' },
     projectId: { type: String, required: true, unique: true },
     prd: { type: String, default: '' },
     backlog: { type: [ScrumTaskSchema], default: [] },
     currentSprint: { type: String, default: 'Sprint 1' },
+    sprintStatus: { type: String, enum: ['NOT_STARTED', 'ACTIVE', 'COMPLETED'], default: 'NOT_STARTED' },
     status: { type: String, enum: ['INTAKE', 'DEVELOPMENT', 'AUDIT', 'DEPLOYMENT', 'DEPLOYED'], default: 'INTAKE' },
     artifacts: {
         codeRepositoryUrl: { type: String, default: '' },

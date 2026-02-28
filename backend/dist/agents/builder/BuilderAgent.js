@@ -39,6 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BuilderAgent = void 0;
 const gemini_1 = require("../../services/gemini");
 const MissionContext_1 = __importDefault(require("../../models/MissionContext"));
+const socket_1 = require("../../services/socket");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 class BuilderAgent {
@@ -76,6 +77,13 @@ class BuilderAgent {
         console.log(`[Builder] Executing Task: [${task.id}] ${task.title}`);
         // 1. Mark task as IN_PROGRESS
         await MissionContext_1.default.findOneAndUpdate({ projectId: mission.projectId, 'backlog.id': task.id }, { $set: { 'backlog.$.status': 'IN_PROGRESS' } });
+        const io = (0, socket_1.getSocket)();
+        if (io) {
+            io.to(mission.projectId).emit('task_updated', {
+                taskId: task.id,
+                status: 'IN_PROGRESS'
+            });
+        }
         const prompt = `
 You are 'The Builder', an expert Software Engineer Dev Agent.
 Your current task is to write code based on the provided Product Requirement Document (PRD) and the specific Jira/Scrum Task Description.
@@ -123,6 +131,12 @@ Decide what the most appropriate single source code file (e.g. 'src/App.js', 'se
                 console.log(`[Builder] Wrote code to ${absoluteFilePath}`);
                 // Update task status to REVIEW
                 await MissionContext_1.default.findOneAndUpdate({ projectId: mission.projectId, 'backlog.id': task.id }, { $set: { 'backlog.$.status': 'REVIEW' } });
+                if (io) {
+                    io.to(mission.projectId).emit('task_updated', {
+                        taskId: task.id,
+                        status: 'REVIEW'
+                    });
+                }
             }
             else {
                 throw new Error('Gemini did not return filePath or codeContent');

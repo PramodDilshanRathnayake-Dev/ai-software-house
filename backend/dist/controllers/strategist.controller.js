@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMissionStatus = exports.handleClientIntake = void 0;
+exports.handleMidSprintDiscussion = exports.getMissionStatus = exports.handleClientIntake = void 0;
 const StrategistAgent_1 = require("../agents/strategist/StrategistAgent");
 const MissionContext_1 = __importDefault(require("../models/MissionContext"));
 const uuid_1 = require("uuid");
@@ -56,3 +56,33 @@ const getMissionStatus = async (req, res) => {
     }
 };
 exports.getMissionStatus = getMissionStatus;
+const handleMidSprintDiscussion = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        const { prompt } = req.body;
+        if (!prompt) {
+            return res.status(400).json({ error: 'Missing prompt in request body' });
+        }
+        const mission = await MissionContext_1.default.findOne({ projectId });
+        if (!mission) {
+            return res.status(404).json({ error: 'Mission not found' });
+        }
+        console.log(`[Strategist] Processing mid-sprint request for ${projectId}: ${prompt}`);
+        // Use strategist to generate a backlog for the isolated prompt
+        const newTasks = await strategist.generateBacklog(`Context: The user has an ongoing project and needs to add a new requirement mid-sprint. Requirement: ${prompt}`);
+        // Append generated tasks to the backlog
+        mission.backlog.push(...newTasks);
+        await mission.save();
+        console.log(`[Strategist] Appended ${newTasks.length} new tasks to backlog.`);
+        res.status(200).json({
+            message: 'Successfully added new requirements to backlog',
+            newTasks,
+            mission
+        });
+    }
+    catch (error) {
+        console.error('[Strategist Controller Error]', error);
+        res.status(500).json({ error: 'Failed to process discussion', details: error.message });
+    }
+};
+exports.handleMidSprintDiscussion = handleMidSprintDiscussion;

@@ -1,4 +1,5 @@
 import MissionContext from '../../models/MissionContext';
+import { getSocket } from '../../services/socket';
 
 export class SREAgent {
     /**
@@ -41,6 +42,13 @@ export class SREAgent {
             { projectId: missionId },
             { $set: { status: 'DEPLOYED' } }
         );
+
+        const io = getSocket();
+        if (io) {
+            io.to(missionId).emit('mission_updated', {
+                status: 'DEPLOYED'
+            });
+        }
 
         console.log(`[SRE] Mission ${missionId} has been successfully deployed to Production.`);
     }

@@ -1,32 +1,36 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MoreVertical } from 'lucide-react';
+import { Dialog, DialogTitle, DialogContent, Typography, Box, Chip, Divider, Button, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import CodeIcon from '@mui/icons-material/Code';
 
 const columns = [
-    { id: 'backlog', title: 'BACKLOG', count: 14, color: 'from-cyan-400 to-blue-500', shadow: 'shadow-[0_0_15px_rgba(34,211,238,0.3)]' },
-    { id: 'inprogress', title: 'IN PROGRESS', count: 5, color: 'from-fuchsia-500 to-purple-600', shadow: 'shadow-[0_0_15px_rgba(217,70,239,0.3)]' },
-    { id: 'review', title: 'REVIEW', count: 7, color: 'from-orange-400 to-amber-500', shadow: 'shadow-[0_0_15px_rgba(251,146,60,0.3)]' },
-    { id: 'done', title: 'DONE', count: 19, color: 'from-emerald-400 to-teal-500', shadow: 'shadow-[0_0_15px_rgba(52,211,153,0.3)]' },
+    { id: 'TODO', title: 'BACKLOG', color: 'from-cyan-400 to-blue-500', shadow: 'shadow-[0_0_15px_rgba(34,211,238,0.3)]' },
+    { id: 'IN_PROGRESS', title: 'IN PROGRESS', color: 'from-fuchsia-500 to-purple-600', shadow: 'shadow-[0_0_15px_rgba(217,70,239,0.3)]' },
+    { id: 'REVIEW', title: 'REVIEW', color: 'from-orange-400 to-amber-500', shadow: 'shadow-[0_0_15px_rgba(251,146,60,0.3)]' },
+    { id: 'DONE', title: 'DONE', color: 'from-emerald-400 to-teal-500', shadow: 'shadow-[0_0_15px_rgba(52,211,153,0.3)]' },
 ];
 
-const mockTasks = [
-    { id: 'AI-450', title: 'Refactor NLU Logic', agent: 'Builder', column: 'backlog', priority: 'HIGH', progress: 10, time: '10:50 ms' },
-    { id: 'AI-451', title: 'Refactor CI/CD Logic', agent: 'Builder', column: 'backlog', priority: 'MED', progress: 30, time: '10:59 ms' },
-    { id: 'AI-452', title: 'Implement Natural Language Model', agent: 'Builder', column: 'inprogress', priority: 'HIGH', progress: 45, time: '10:53 ms' },
-    { id: 'AI-453', title: 'Develop Microservices API', agent: 'Auditor', column: 'inprogress', priority: 'HIGH', progress: 60, time: '10:59 ms' },
-    { id: 'AI-448', title: 'Validate Model Security', agent: 'Auditor', column: 'review', priority: 'HIGH', progress: 100, time: '19:30 ms', status: 'Reviewing' },
-    { id: 'AI-432', title: 'Deploy QA Environment', agent: 'SRE', column: 'done', priority: 'HIGH', progress: 100, time: '10:30 ms', status: 'Completed' },
-];
+export function ScrumBoard({ tasks = [], projectId = 'All Projects' }: { tasks: any[], projectId?: string }) {
+    const [selectedTask, setSelectedTask] = useState<any | null>(null);
 
-export function ScrumBoard() {
+    const handleTaskClick = (task: any) => {
+        setSelectedTask(task);
+    };
+
+    const handleClose = () => {
+        setSelectedTask(null);
+    };
     return (
         <div className="max-w-[1600px] mx-auto p-4 md:p-8">
             <div className="flex justify-between items-end mb-8">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                        Aethelred AI Labs - Kanban Board: Sprint 14
+                        Aethelred AI Labs - Kanban Board
                     </h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">Project: {projectId}</p>
                     <p className="text-slate-500 dark:text-slate-400 text-sm">Active Agents: Builder, Auditor, SRE</p>
                 </div>
             </div>
@@ -44,34 +48,36 @@ export function ScrumBoard() {
                                     {col.title}
                                 </h3>
                                 <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400">
-                                    {col.count}
+                                    {tasks.filter((t: any) => t.status === col.id).length}
                                 </span>
                             </div>
                         </div>
 
                         {/* Task Cards Container */}
                         <div className="flex-1 min-h-[500px] space-y-4 rounded-xl p-2 bg-slate-50/50 dark:bg-slate-900/20 border border-transparent dark:border-slate-800/50">
-                            {mockTasks
-                                .filter((t) => t.column === col.id)
-                                .map((task) => (
+                            {tasks
+                                .filter((t: any) => t.status === col.id)
+                                .map((task: any) => (
                                     <div
                                         key={task.id}
-                                        className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all group cursor-grab active:cursor-grabbing"
+                                        onClick={() => handleTaskClick(task)}
+                                        className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all group cursor-pointer active:cursor-grabbing"
                                     >
                                         <div className="flex justify-between items-start mb-3">
                                             <div className="flex items-center gap-2">
-                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white bg-gradient-to-br ${task.agent === 'Builder' ? 'from-cyan-400 to-blue-500' :
-                                                    task.agent === 'Auditor' ? 'from-orange-400 to-amber-500' :
-                                                        'from-emerald-400 to-teal-500'
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white bg-gradient-to-br ${task.assignee === 'BUILDER' ? 'from-cyan-400 to-blue-500' :
+                                                    task.assignee === 'AUDITOR' ? 'from-orange-400 to-amber-500' :
+                                                        task.assignee === 'SRE' ? 'from-emerald-400 to-teal-500' :
+                                                            'from-slate-400 to-slate-500'
                                                     }`}>
-                                                    {task.agent.charAt(0)}
+                                                    {task.assignee ? task.assignee.charAt(0) : '?'}
                                                 </div>
                                                 <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                                                    {task.agent}
+                                                    {task.assignee || 'Unassigned'}
                                                 </span>
                                             </div>
 
-                                            {task.status && (
+                                            {task.status === 'DONE' && (
                                                 <span className={`text-[10px] font-bold uppercase tracking-wider ${task.status === 'Completed' ? 'text-emerald-500' : 'text-orange-400'
                                                     }`}>
                                                     {task.status}
@@ -107,12 +113,12 @@ export function ScrumBoard() {
                                         <div className="space-y-1.5">
                                             <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
                                                 <span>Progress</span>
-                                                <span className="font-mono">{task.time}</span>
+                                                <span className="font-mono">{task.status === 'DONE' ? '100' : task.status === 'REVIEW' ? '80' : task.status === 'IN_PROGRESS' ? '40' : '0'}%</span>
                                             </div>
                                             <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                                 <div
                                                     className={`h-full rounded-full bg-gradient-to-r ${col.color}`}
-                                                    style={{ width: `${task.progress}%` }}
+                                                    style={{ width: `${task.status === 'DONE' ? 100 : task.status === 'REVIEW' ? 80 : task.status === 'IN_PROGRESS' ? 40 : 0}%` }}
                                                 />
                                             </div>
                                         </div>
@@ -122,6 +128,90 @@ export function ScrumBoard() {
                     </div>
                 ))}
             </div>
+
+            {/* Task Details & Artifacts Modal */}
+            <Dialog
+                open={Boolean(selectedTask)}
+                onClose={handleClose}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        bgcolor: 'background.paper',
+                        backgroundImage: 'none',
+                        borderRadius: 3,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                    }
+                }}
+            >
+                {selectedTask && (
+                    <>
+                        <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box>
+                                <Typography variant="h6" fontWeight="bold">
+                                    {selectedTask.title}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary" fontFamily="monospace">
+                                    {selectedTask.id}
+                                </Typography>
+                            </Box>
+                            <IconButton onClick={handleClose} size="small">
+                                <CloseIcon />
+                            </IconButton>
+                        </DialogTitle>
+                        <DialogContent dividers sx={{ p: 3 }}>
+                            <Box sx={{ mb: 4 }}>
+                                <Typography variant="subtitle2" color="primary.light" gutterBottom>
+                                    Description
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
+                                    {selectedTask.description || "No detailed description provided."}
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 4 }}>
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>Assignee</Typography>
+                                    <Chip size="small" label={selectedTask.assignee || 'Unassigned'} color="secondary" variant="outlined" />
+                                </Box>
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>Status</Typography>
+                                    <Chip size="small" label={selectedTask.status} color="info" />
+                                </Box>
+                            </Box>
+
+                            <Divider sx={{ my: 3 }} />
+
+                            <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <CodeIcon fontSize="small" /> Artifacts & Deliverables
+                            </Typography>
+
+                            <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                                {selectedTask.status === 'DONE' || selectedTask.status === 'REVIEW' ? (
+                                    <Box>
+                                        <Typography variant="body2" color="success.main" gutterBottom>
+                                            ✓ Code Diff Generated
+                                        </Typography>
+                                        <Button variant="text" size="small" sx={{ textTransform: 'none', p: 0, minWidth: 'auto' }}>
+                                            View Commit: <Typography variant="caption" fontFamily="monospace" ml={1}>a1b2c3d</Typography>
+                                        </Button>
+                                        <br />
+                                        <Button variant="text" size="small" sx={{ textTransform: 'none', p: 0, minWidth: 'auto', mt: 1 }}>
+                                            Playback QA Video Proof
+                                        </Button>
+                                    </Box>
+                                ) : (
+                                    <Typography variant="body2" color="text.secondary">
+                                        No artifacts available yet. Task is currently in {selectedTask.status}.
+                                    </Typography>
+                                )}
+                            </Box>
+                        </DialogContent>
+                    </>
+                )}
+            </Dialog>
         </div>
     );
 }

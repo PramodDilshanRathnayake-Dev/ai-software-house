@@ -6,30 +6,21 @@ import { ThemeToggle } from './ThemeToggle';
 import Link from 'next/link';
 import { Button, Avatar, Menu, MenuItem, IconButton, Typography, Box } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
+import { useAuth } from '@/context/AuthContext';
+import { NotificationMenu } from './NotificationMenu';
 
 export function Navbar() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const { user, logout } = useAuth();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
-        const auth = localStorage.getItem('mock_auth');
-        if (auth === 'true') {
-            setIsLoggedIn(true);
-        }
     }, []);
 
-    const handleLogin = () => {
-        localStorage.setItem('mock_auth', 'true');
-        setIsLoggedIn(true);
-    };
-
     const handleLogout = () => {
-        localStorage.removeItem('mock_auth');
-        setIsLoggedIn(false);
+        logout();
         setAnchorEl(null);
-        // Force reload or just let state handle it
     };
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -59,9 +50,10 @@ export function Navbar() {
                         <ThemeToggle />
 
                         {mounted && (
-                            <Box ml={1}>
-                                {isLoggedIn ? (
+                            <Box ml={1} display="flex" alignItems="center">
+                                {user ? (
                                     <>
+                                        <NotificationMenu />
                                         <IconButton
                                             onClick={handleMenuOpen}
                                             size="small"
@@ -87,8 +79,8 @@ export function Navbar() {
                                             }}
                                         >
                                             <Box px={2} py={1.5} borderBottom={1} borderColor="divider">
-                                                <Typography variant="subtitle2" fontWeight="bold">Guest User</guest>
-                                                <Typography variant="body2" color="text.secondary">guest@example.com</Typography>
+                                                <Typography variant="subtitle2" fontWeight="bold">{user?.name}</Typography>
+                                                <Typography variant="body2" color="text.secondary">{user?.email}</Typography>
                                             </Box>
                                             <MenuItem onClick={handleMenuClose} sx={{ mt: 1 }}>Profile Settings</MenuItem>
                                             <MenuItem onClick={handleMenuClose}>Client Projects</MenuItem>
@@ -96,14 +88,15 @@ export function Navbar() {
                                         </Menu>
                                     </>
                                 ) : (
-                                    <Button
-                                        variant="outlined"
-                                        size="small"
-                                        onClick={handleLogin}
-                                        sx={{ borderRadius: 6, px: 3 }}
-                                    >
-                                        Sign In
-                                    </Button>
+                                    <Link href="/login" passHref>
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            sx={{ borderRadius: 6, px: 3 }}
+                                        >
+                                            Sign In
+                                        </Button>
+                                    </Link>
                                 )}
                             </Box>
                         )}
