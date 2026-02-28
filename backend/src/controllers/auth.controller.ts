@@ -4,6 +4,7 @@ import User from '../models/User';
 import { AuthRequest } from '../middleware/auth';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_super_secret_for_local_dev_only';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -85,7 +86,7 @@ export const googleCallback = (req: Request, res: Response) => {
     try {
         const user = req.user as any;
         if (!user) {
-            return res.redirect('http://localhost:3000/login?error=sso_failed');
+            return res.redirect(`${FRONTEND_URL}/login?error=sso_failed`);
         }
 
         const token = jwt.sign(
@@ -95,9 +96,9 @@ export const googleCallback = (req: Request, res: Response) => {
         );
 
         // Redirect back to frontend with the token in URL query params
-        res.redirect(`http://localhost:3000/login?token=${token}&user=${encodeURIComponent(JSON.stringify({ id: user._id, email: user.email, name: user.name, role: user.role }))}`);
+        res.redirect(`${FRONTEND_URL}/login?token=${token}&user=${encodeURIComponent(JSON.stringify({ id: user._id, email: user.email, name: user.name, role: user.role }))}`);
     } catch (error) {
         console.error('[Google SSO Error]', error);
-        res.redirect('http://localhost:3000/login?error=sso_failed');
+        res.redirect(`${FRONTEND_URL}/login?error=sso_failed`);
     }
 };
