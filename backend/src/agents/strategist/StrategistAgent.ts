@@ -22,8 +22,8 @@ Client Request:
 "${clientIntake}"
     `;
 
-        // Using gemini-2.5-pro for complex reasoning (PRD generation)
-        return await generateContent(prompt, 'gemini-2.5-pro');
+        // Using gemini-flash-latest for stability (Avoids quota issues with Pro)
+        return await generateContent(prompt, 'gemini-flash-latest');
     }
 
     /**
@@ -60,7 +60,7 @@ PRD:
 
         try {
             const response = await client.models.generateContent({
-                model: 'gemini-2.5-pro',
+                model: 'gemini-flash-latest',
                 contents: prompt,
                 config: {
                     responseMimeType: 'application/json',

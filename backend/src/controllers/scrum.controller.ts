@@ -84,7 +84,7 @@ Generate a JSON array of NEW Scrum Tasks according to the provided schema. Assig
         };
 
         const aiResponse = await client.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-flash-latest',
             contents: prompt,
             config: {
                 responseMimeType: 'application/json',

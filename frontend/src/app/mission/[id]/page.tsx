@@ -1,7 +1,21 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 'use client';
 
-import { Box, Container, Typography, Card, CardContent, Chip, Button, CircularProgress, Divider, TextField, IconButton } from '@mui/material';
+import {
+    Box,
+    Container,
+    Typography,
+    Card,
+    CardContent,
+    Chip,
+    Button,
+    CircularProgress,
+    Divider,
+    TextField,
+    Tooltip,
+    Grid,
+    Avatar,
+    IconButton
+} from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
@@ -9,6 +23,8 @@ import CodeIcon from '@mui/icons-material/Code';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SendIcon from '@mui/icons-material/Send';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import HubIcon from '@mui/icons-material/Hub';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { io, Socket } from 'socket.io-client';
 
@@ -28,7 +44,7 @@ export default function MissionControlPage() {
 
     const fetchMission = async () => {
         try {
-            const response = await fetchWithAuth('http://localhost:8000/api/strategist/missions');
+            const response = await fetchWithAuth(`http://localhost:8000/api/strategist/missions`);
             const data = await response.json();
             const current = data.find((m: any) => m.projectId === missionId);
             if (current) setMission(current);
@@ -44,15 +60,10 @@ export default function MissionControlPage() {
         if (missionId) {
             fetchMission();
 
-            // Connect to WebSocket Server
             const socket: Socket = io('http://localhost:8000');
-
-            // Join specific mission room
             socket.emit('join_mission', missionId);
 
-            // Listen for AI Agents updating task statuses
             socket.on('task_updated', (data: { taskId: string, status: string }) => {
-                console.log('[WebSocket] Task Updated Received:', data);
                 setMission((prevMission: any) => {
                     if (!prevMission) return prevMission;
                     const updatedBacklog = prevMission.backlog.map((task: any) =>
@@ -62,7 +73,6 @@ export default function MissionControlPage() {
                 });
             });
 
-            // Listen for overall mission status (e.g. SRE deployed)
             socket.on('mission_updated', (data: { status: string }) => {
                 setMission((prevMission: any) => {
                     if (!prevMission) return prevMission;
@@ -82,7 +92,6 @@ export default function MissionControlPage() {
             await fetchWithAuth(`http://localhost:8000/api/builder/start/${missionId}`, {
                 method: 'POST',
             });
-            // Await next poll to update UI
         } catch (err: any) {
             console.error(err);
         } finally {
@@ -99,13 +108,9 @@ export default function MissionControlPage() {
                 method: 'POST',
                 body: JSON.stringify({ additionalRequirements: discussInput }),
             });
-            const data = await res.json();
             if (res.ok) {
-                // Poll instantly
                 fetchMission();
                 setDiscussInput('');
-            } else {
-                console.error(data.error);
             }
         } catch (err: any) {
             console.error(err);
@@ -126,7 +131,7 @@ export default function MissionControlPage() {
             });
             if (res.ok) {
                 setCommentInputs(prev => ({ ...prev, [taskId]: '' }));
-                fetchMission(); // Poll to update UI
+                fetchMission();
             }
         } catch (err) {
             console.error(err);
@@ -138,191 +143,193 @@ export default function MissionControlPage() {
     if (loading) return <Container sx={{ mt: 8, textAlign: 'center' }}><CircularProgress /></Container>;
     if (error || !mission) return <Container sx={{ mt: 8 }}><Typography color="error">{error}</Typography></Container>;
 
-    const builderTasks = mission.backlog.filter((t: any) => t.assignee === 'BUILDER');
-
     return (
-        <Container maxWidth="xl" sx={{ mt: 6, mb: 6 }}>
-            <Button
-                startIcon={<ArrowBackIcon />}
-                onClick={() => router.push('/')}
-                sx={{ mb: 3 }}
-            >
-                Back to Dashboard
-            </Button>
+        <ProtectedRoute>
+            <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[1fr_380px] pt-16">
+                {/* Left side - Dynamic Mind map & Progress */}
+                <div className="p-6 overflow-y-auto">
+                    {/* Mission Header */}
+                    <Box mb={4}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                            <Button
+                                startIcon={<ArrowBackIcon />}
+                                onClick={() => router.push('/')}
+                                size="small"
+                                variant="text"
+                            >
+                                Dashboard
+                            </Button>
+                            <Typography variant="overline" color="primary" fontWeight="bold">Active Project</Typography>
+                        </Box>
+                        <Typography variant="h4" fontWeight="bold" gutterBottom>{mission.projectId}</Typography>
+                        <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 800 }}>
+                            {mission.prd.substring(0, 250)}...
+                        </Typography>
+                    </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                <Box>
-                    <Typography variant="h3" fontWeight="bold" color="primary">
-                        Mission {missionId.substring(0, 8)}...
-                    </Typography>
-                    <Typography variant="subtitle1" color="text.secondary">
-                        Project: {mission.sharedState?.projectName}
-                    </Typography>
-                </Box>
-                <Chip label={`Status: ${mission.status}`} color="secondary" size="medium" />
-            </Box>
+                    {/* Simulation Visualization Area */}
+                    <Box
+                        sx={{
+                            height: 400,
+                            borderRadius: 4,
+                            bgcolor: 'action.hover',
+                            border: '2px dashed',
+                            borderColor: 'divider',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            mb: 6,
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        <HubIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2, opacity: 0.5 }} />
+                        <Typography color="text.secondary">
+                            Live Agent Interaction Mind Map
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled">
+                            (Visualizing real-time agent coordination)
+                        </Typography>
 
-            <Box sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' },
-                gap: 4
-            }}>
-                {/* Left Column: PRD */}
-                <Box>
-                    <Card sx={{ height: '100%', bgcolor: 'background.paper' }}>
-                        <CardContent>
-                            <Typography variant="h5" color="primary.light" gutterBottom>
-                                Product Requirement Document
-                            </Typography>
-                            <Divider sx={{ mb: 2 }} />
-                            <Box sx={{
-                                whiteSpace: 'pre-wrap', fontFamily: 'var(--font-inter)',
-                                maxHeight: '600px', overflowY: 'auto', p: 1
-                            }}>
-                                {mission.prd}
-                            </Box>
-                        </CardContent>
-                    </Card>
-                </Box>
+                        <Chip
+                            label={mission.status}
+                            color={mission.status === 'DONE' ? 'success' : 'primary'}
+                            sx={{ position: 'absolute', top: 24, right: 24, fontWeight: 'bold' }}
+                        />
+                    </Box>
 
-                {/* Right Column: Dev Backlog & Sprint Controls */}
-                <Box>
-                    <Card sx={{ height: '100%', bgcolor: 'background.paper' }}>
-                        <CardContent>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="h5" color="secondary.light">
-                                    Scrum Backlog
-                                </Typography>
-                                <Button
-                                    variant="contained"
-                                    color="success"
-                                    startIcon={sprintLoading ? <CircularProgress size={20} color="inherit" /> : <RocketLaunchIcon />}
-                                    onClick={handleStartSprint}
-                                    disabled={sprintLoading}
-                                >
-                                    Start Builder Sprint
-                                </Button>
-                            </Box>
-                            <Divider sx={{ mb: 2 }} />
-
-                            <Box sx={{ maxHeight: '600px', overflowY: 'auto', p: 1 }}>
-                                {mission.backlog.map((task: any) => (
-                                    <Card key={task.id} sx={{
-                                        mb: 2, bgcolor: 'background.default', borderLeft: `4px solid ${task.status === 'DONE' ? '#4caf50'
-                                            : task.status === 'REVIEW' ? '#ff9800'
-                                                : task.status === 'IN_PROGRESS' ? '#03a9f4'
-                                                    : '#757575'
-                                            }`
-                                    }}>
-                                        <CardContent sx={{ pb: '16px !important' }}>
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                                <Typography variant="subtitle2" fontWeight="bold">
-                                                    {task.id} - {task.title}
-                                                </Typography>
-                                                <Chip
-                                                    label={task.status}
-                                                    size="small"
-                                                    color={
-                                                        task.status === 'DONE' ? 'success'
-                                                            : task.status === 'REVIEW' ? 'warning'
-                                                                : task.status === 'IN_PROGRESS' ? 'info'
-                                                                    : 'default'
-                                                    }
-                                                />
-                                            </Box>
-                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                {task.description}
+                    {/* Agent Status Grid */}
+                    <Grid container spacing={3} mb={6}>
+                        {['STRATEGIST', 'BUILDER', 'AUDITOR', 'SRE'].map((role) => (
+                            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={role}>
+                                <Tooltip title={`${role} Agent Status`}>
+                                    <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                                        <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                                            <Avatar sx={{ mx: 'auto', mb: 1, bgcolor: role === 'STRATEGIST' ? 'purple' : 'blue' }}>
+                                                {role[0]}
+                                            </Avatar>
+                                            <Typography variant="subtitle2" fontWeight="bold">{role}</Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                {mission.backlog.some((t: any) => t.assignee === role && t.status === 'IN_PROGRESS') ? 'Working...' : 'Idle'}
                                             </Typography>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                                <CodeIcon fontSize="small" color={task.assignee === 'BUILDER' ? 'secondary' : 'disabled'} />
-                                                <Typography variant="caption" color="text.secondary">
-                                                    Assignee: {task.assignee}
-                                                </Typography>
-                                                {task.storyPoints > 0 && (
-                                                    <Chip label={`${task.storyPoints} pts`} size="small" variant="outlined" sx={{ ml: 'auto' }} />
-                                                )}
-                                            </Box>
-
-                                            {/* Comments Section */}
-                                            {task.comments && task.comments.length > 0 && (
-                                                <Box sx={{ mt: 2, mb: 2, pl: 2, borderLeft: '2px solid', borderColor: 'divider' }}>
-                                                    {task.comments.map((c: any, i: number) => (
-                                                        <Box key={i} sx={{ mb: 1 }}>
-                                                            <Typography variant="caption" fontWeight="bold" color="primary">{c.author}</Typography>
-                                                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                                                                {new Date(c.createdAt).toLocaleDateString()}
-                                                            </Typography>
-                                                            <Typography variant="body2" sx={{ mt: 0.5 }}>{c.text}</Typography>
-                                                        </Box>
-                                                    ))}
-                                                </Box>
-                                            )}
-
-                                            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                                                <TextField
-                                                    size="small"
-                                                    placeholder="Add a comment..."
-                                                    fullWidth
-                                                    value={commentInputs[task.id] || ''}
-                                                    onChange={(e) => setCommentInputs(prev => ({ ...prev, [task.id]: e.target.value }))}
-                                                />
-                                                <Button
-                                                    variant="outlined"
-                                                    size="small"
-                                                    disabled={commentingId === task.id || !commentInputs[task.id]?.trim()}
-                                                    onClick={() => handlePostComment(task.id)}
-                                                >
-                                                    {commentingId === task.id ? <CircularProgress size={16} /> : 'Post'}
-                                                </Button>
-                                            </Box>
                                         </CardContent>
                                     </Card>
-                                ))}
+                                </Tooltip>
+                            </Grid>
+                        ))}
+                    </Grid>
+
+                    {/* Scrum Backlog in Mission View */}
+                    <Box mb={4}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            <Typography variant="h5" fontWeight="bold">Backlog & Sprint</Typography>
+                            <Button
+                                variant="contained"
+                                color="success"
+                                startIcon={sprintLoading ? <CircularProgress size={20} color="inherit" /> : <RocketLaunchIcon />}
+                                onClick={handleStartSprint}
+                                disabled={sprintLoading || mission.status === 'DEVELOPMENT'}
+                                sx={{ borderRadius: 2 }}
+                            >
+                                {mission.status === 'DEVELOPMENT' ? 'Sprint In Progress' : 'Start Builder Sprint'}
+                            </Button>
+                        </Box>
+
+                        <div className="space-y-4">
+                            {mission.backlog.map((task: any) => (
+                                <Card key={task.id} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                                    <CardContent>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                            <Typography variant="subtitle1" fontWeight="bold">{task.title}</Typography>
+                                            <Chip label={task.status} size="small" color={task.status === 'DONE' ? 'success' : 'primary'} variant="outlined" />
+                                        </Box>
+                                        <Typography variant="body2" color="text.secondary" mb={2}>{task.description}</Typography>
+
+                                        {/* Comments */}
+                                        {task.comments && task.comments.length > 0 && (
+                                            <Box sx={{ bgcolor: 'action.hover', p: 2, borderRadius: 2, mb: 2 }}>
+                                                {task.comments.map((c: any, i: number) => (
+                                                    <Box key={i} mb={1}>
+                                                        <Typography variant="caption" fontWeight="bold">{c.author}</Typography>
+                                                        <Typography variant="body2">{c.text}</Typography>
+                                                    </Box>
+                                                ))}
+                                            </Box>
+                                        )}
+
+                                        <Box sx={{ display: 'flex', gap: 1 }}>
+                                            <TextField
+                                                fullWidth
+                                                size="small"
+                                                placeholder="Comment..."
+                                                value={commentInputs[task.id] || ''}
+                                                onChange={(e) => setCommentInputs(prev => ({ ...prev, [task.id]: e.target.value }))}
+                                            />
+                                            <IconButton color="primary" onClick={() => handlePostComment(task.id)} disabled={!commentInputs[task.id]?.trim()}>
+                                                <SendIcon fontSize="small" />
+                                            </IconButton>
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    </Box>
+
+                    {/* Mid-Sprint Discussion */}
+                    <Card sx={{ bgcolor: 'primary.main', color: 'white', borderRadius: 4 }}>
+                        <CardContent sx={{ p: 4 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                                <AutoAwesomeIcon />
+                                <Typography variant="h6" fontWeight="bold">Refine Requirements Mid-Sprint</Typography>
                             </Box>
-                        </CardContent>
-                    </Card>
-
-                    {/* Mid-Sprint Discussion Box */}
-                    <Card sx={{ mt: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'primary.main', boxShadow: '0 0 15px rgba(2, 132, 199, 0.15)' }}>
-                        <CardContent>
-                            <Typography variant="h6" color="primary.main" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <AutoAwesomeIcon fontSize="small" /> Discuss with Strategist
+                            <Typography variant="body2" sx={{ mb: 3, opacity: 0.9 }}>
+                                Need to add a new requirement? Describe it here and the Strategist will analyze its impact and update the backlog.
                             </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                Need to add a new requirement mid-sprint? Ask the Strategist to analyze it and append to the active backlog.
-                            </Typography>
-
                             <Box sx={{ display: 'flex', gap: 1 }}>
                                 <TextField
                                     fullWidth
-                                    size="small"
-                                    placeholder="e.g., We need to add social login via Google..."
                                     variant="outlined"
+                                    placeholder="e.g., We need to add social login support..."
                                     value={discussInput}
                                     onChange={(e) => setDiscussInput(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleDiscussSubmit();
-                                        }
-                                    }}
-                                    disabled={discussLoading}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    sx={{ bgcolor: 'white', borderRadius: 2, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                                 />
                                 <Button
                                     variant="contained"
-                                    color="primary"
+                                    color="secondary"
                                     onClick={handleDiscussSubmit}
-                                    disabled={!discussInput.trim() || discussLoading}
-                                    sx={{ borderRadius: 2, minWidth: '48px' }}
+                                    disabled={discussLoading || !discussInput.trim()}
+                                    sx={{ borderRadius: 2, px: 4 }}
                                 >
-                                    {discussLoading ? <CircularProgress size={20} color="inherit" /> : <SendIcon fontSize="small" />}
+                                    {discussLoading ? <CircularProgress size={24} /> : 'Analyze'}
                                 </Button>
                             </Box>
                         </CardContent>
                     </Card>
-                </Box>
-            </Box>
-        </Container>
+                </div>
+
+                {/* Right side - Mission Feed / Artifacts */}
+                <aside className="border-l border-divider bg-slate-50/30 dark:bg-slate-900/10 backdrop-blur-sm p-6 overflow-y-auto">
+                    <Typography variant="h6" fontWeight="bold" gutterBottom mb={3}>Mission Artifacts</Typography>
+
+                    <div className="space-y-4">
+                        {mission.artifacts.logs.map((log: string, idx: number) => (
+                            <div key={idx} className="p-3 rounded-lg bg-white dark:bg-slate-800 border border-divider shadow-sm">
+                                <Typography variant="caption" display="block" color="primary" fontWeight="bold">AGENT LOG</Typography>
+                                <Typography variant="body2">{log}</Typography>
+                            </div>
+                        ))}
+
+                        {mission.artifacts.codeRepositoryUrl && (
+                            <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                                <Typography variant="subtitle2" color="cyan.700" fontWeight="bold">Repository Created</Typography>
+                                <Typography variant="body2" className="break-all mt-1">{mission.artifacts.codeRepositoryUrl}</Typography>
+                            </div>
+                        )}
+                    </div>
+                </aside>
+            </div>
+        </ProtectedRoute>
     );
 }

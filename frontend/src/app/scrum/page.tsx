@@ -4,6 +4,8 @@ import { ScrumBoard } from '@/components/ScrumBoard';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { CircularProgress, Box, Typography } from '@mui/material';
+import ProtectedRoute from '@/components/ProtectedRoute';
+
 
 function ScrumBoardContent() {
     const searchParams = useSearchParams();
@@ -66,8 +68,10 @@ function ScrumBoardContent() {
 
 export default function ScrumPage() {
     return (
-        <Suspense fallback={<CircularProgress />}>
-            <ScrumBoardContent />
-        </Suspense>
+        <ProtectedRoute>
+            <Suspense fallback={<CircularProgress />}>
+                <ScrumBoardContent />
+            </Suspense>
+        </ProtectedRoute>
     );
 }

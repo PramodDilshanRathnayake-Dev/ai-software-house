@@ -17,7 +17,7 @@ export const getGeminiClient = (): GoogleGenAI => {
     return ai;
 };
 
-export const generateContent = async (prompt: string, model: string = 'gemini-2.5-flash'): Promise<string> => {
+export const generateContent = async (prompt: string, model: string = 'gemini-flash-latest'): Promise<string> => {
     const client = getGeminiClient();
     try {
         const response = await client.models.generateContent({

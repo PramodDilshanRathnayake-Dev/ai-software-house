@@ -90,7 +90,7 @@ Decide what the most appropriate single source code file (e.g. 'src/App.js', 'se
 
         try {
             const response = await client.models.generateContent({
-                model: 'gemini-2.5-pro',
+                model: 'gemini-flash-latest',
                 contents: prompt,
                 config: {
                     responseMimeType: 'application/json',

@@ -29,26 +29,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const pathname = usePathname();
 
     useEffect(() => {
-        const storedToken = Cookies.get('token');
-        const storedUser = Cookies.get('user');
+        const checkAuth = async () => {
+            const storedToken = Cookies.get('token');
+            if (storedToken) {
+                try {
+                    const res = await fetch('http://localhost:8000/api/auth/me', {
+                        headers: {
+                            'Authorization': `Bearer ${storedToken}`
+                        }
+                    });
 
-        if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
-        }
-        setLoading(false);
+                    if (res.ok) {
+                        const userData = await res.json();
+                        setToken(storedToken);
+                        setUser(userData);
+                    } else {
+                        // Token invalid or expired
+                        logout();
+                    }
+                } catch (error) {
+                    console.error('Auth check failed', error);
+                    // On network error, we might want to keep the local state 
+                    // or clear it depending on security preference.
+                    // For now, let's just clear if we can't verify.
+                    logout();
+                }
+            }
+            setLoading(false);
+        };
+
+        checkAuth();
     }, []);
 
     useEffect(() => {
-        // Basic route protection
-        const publicPaths = ['/login', '/register'];
-        const isPublicPath = publicPaths.includes(pathname);
-
-        if (!loading && !user && !isPublicPath) {
-            router.push('/login');
-        } else if (!loading && user && isPublicPath) {
-            router.push('/');
-        }
+        // Redirect logic moved to ProtectedRoute component for better control
     }, [user, loading, pathname, router]);
 
     const login = (newToken: string, newUser: User) => {
@@ -64,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         Cookies.remove('user');
         setToken(null);
         setUser(null);
-        router.push('/login');
+        router.replace('/login');
     };
 
     return (

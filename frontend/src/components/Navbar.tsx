@@ -81,10 +81,13 @@ export function Navbar() {
                                             <Box px={2} py={1.5} borderBottom={1} borderColor="divider">
                                                 <Typography variant="subtitle2" fontWeight="bold">{user?.name}</Typography>
                                                 <Typography variant="body2" color="text.secondary">{user?.email}</Typography>
+                                                <Typography variant="caption" sx={{ mt: 0.5, display: 'inline-block', px: 1, py: 0.2, bgcolor: 'action.selected', borderRadius: 1, fontWeight: 'bold', color: 'primary.main' }}>
+                                                    {user?.role?.toUpperCase()}
+                                                </Typography>
                                             </Box>
                                             <MenuItem onClick={handleMenuClose} sx={{ mt: 1 }}>Profile Settings</MenuItem>
                                             <MenuItem onClick={handleMenuClose}>Client Projects</MenuItem>
-                                            <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>Sign Out</MenuItem>
+                                            <MenuItem onClick={handleLogout} sx={{ color: 'error.main', fontWeight: 'bold' }}>Sign Out</MenuItem>
                                         </Menu>
                                     </>
                                 ) : (
