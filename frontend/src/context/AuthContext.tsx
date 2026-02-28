@@ -44,17 +44,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         setToken(storedToken);
                         setUser(userData);
                     } else {
-                        // Token invalid or expired
-                        logout();
+                        // Token stored but rejected by server — clear it
+                        Cookies.remove('token');
+                        Cookies.remove('user');
                     }
                 } catch (error) {
-                    console.error('Auth check failed', error);
-                    // On network error, we might want to keep the local state 
-                    // or clear it depending on security preference.
-                    // For now, let's just clear if we can't verify.
-                    logout();
+                    console.error('Auth check failed, keeping local state', error);
+                    // On network error, keep the stored token — don't log user out
+                    const storedUser = Cookies.get('user');
+                    if (storedUser) {
+                        setToken(storedToken);
+                        setUser(JSON.parse(storedUser));
+                    }
                 }
             }
+            // If no stored token, just finish loading — let the login page handle URL params
             setLoading(false);
         };
 
@@ -62,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     useEffect(() => {
-        // Redirect logic moved to ProtectedRoute component for better control
+        // Redirect logic is handled by ProtectedRoute
     }, [user, loading, pathname, router]);
 
     const login = (newToken: string, newUser: User) => {
@@ -78,7 +82,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         Cookies.remove('user');
         setToken(null);
         setUser(null);
-        router.replace('/login');
+        // Only redirect if not already on a public page
+        if (!pathname.startsWith('/login') && !pathname.startsWith('/register')) {
+            router.replace('/login');
+        }
     };
 
     return (
