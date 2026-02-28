@@ -1,0 +1,50 @@
+name: Feature Validation
+
+on:
+  pull_request:
+    branches:
+      - staging
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20' # Using Node 20 as specified in package.json
+          
+      - name: Install Dependencies (Backend)
+        run: npm ci
+        working-directory: ./backend
+
+      - name: Lint (Backend)
+        run: npm run lint
+        working-directory: ./backend
+
+      - name: Test (Backend)
+        run: npm test
+        working-directory: ./backend
+
+      - name: Build (Backend)
+        run: npm run build
+        working-directory: ./backend
+
+      - name: Install Dependencies (Frontend)
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Lint (Frontend)
+        run: npm run lint
+        working-directory: ./frontend
+
+      - name: Test (Frontend)
+        run: npm test
+        working-directory: ./frontend
+
+      - name: Build (Frontend)
+        run: npm run build
+        working-directory: ./frontend

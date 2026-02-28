@@ -1,0 +1,40 @@
+name: Production Release
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies (Backend)
+        run: npm ci
+        working-directory: ./backend
+
+      - name: Build (Backend)
+        run: npm run build
+        working-directory: ./backend
+
+      - name: Install Dependencies (Frontend)
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Build (Frontend)
+        run: npm run build
+        working-directory: ./frontend
+
+      - name: Deploy to Production AWS (Placeholder)
+        run: |
+          echo "Deploying Production to AWS... (Placeholder)"
+          # TODO: Add AWS production deployment steps
