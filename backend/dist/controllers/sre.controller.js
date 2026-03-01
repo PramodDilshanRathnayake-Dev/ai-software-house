@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.startSandbox = exports.reportCrash = exports.triggerDeploy = void 0;
+exports.getSandboxStatus = exports.startSandbox = exports.reportCrash = exports.triggerDeploy = void 0;
 const SREAgent_1 = require("../agents/sre/SREAgent");
 const sre = new SREAgent_1.SREAgent();
 const triggerDeploy = async (req, res) => {
@@ -85,10 +85,9 @@ const startSandbox = async (req, res) => {
         if (!missionId) {
             return res.status(400).json({ error: 'missionId is required' });
         }
-        const { SandboxRunner } = await Promise.resolve().then(() => __importStar(require('../services/sandboxRunner')));
-        const runner = new SandboxRunner();
+        const { sandboxRunnerInstance } = await Promise.resolve().then(() => __importStar(require('../services/sandboxRunner')));
         // Start asynchronously
-        runner.run(missionId).catch(err => {
+        sandboxRunnerInstance.run(missionId).catch(err => {
             console.error(`[SandboxRunner Controller] Error:`, err);
         });
         res.status(202).json({
@@ -101,3 +100,18 @@ const startSandbox = async (req, res) => {
     }
 };
 exports.startSandbox = startSandbox;
+const getSandboxStatus = async (req, res) => {
+    try {
+        const { missionId } = req.params;
+        if (!missionId) {
+            return res.status(400).json({ error: 'missionId is required' });
+        }
+        const { sandboxRunnerInstance } = await Promise.resolve().then(() => __importStar(require('../services/sandboxRunner')));
+        const status = sandboxRunnerInstance.getStatus(missionId);
+        res.status(200).json(status);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get sandbox status', details: error.message });
+    }
+};
+exports.getSandboxStatus = getSandboxStatus;

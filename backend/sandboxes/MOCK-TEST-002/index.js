@@ -9,7 +9,7 @@ const requestHandler = (request, response) => {
       <body style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0fdf4; margin: 0;">
         <div style="text-align: center;">
             <h1 style="color: #166534;">🎉 Hello from the Sandbox!</h1>
-            <p style="color: #15803d;">This application was autonomously generated and is now running live in your Live Preview environment on port ${port}.</p>
+            <p style="color: #15803d;">This application was autonomously generated and is now running live in your Live Preview environment.</p>
         </div>
       </body>
     </html>

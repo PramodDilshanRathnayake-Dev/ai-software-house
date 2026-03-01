@@ -80,5 +80,8 @@ This document outlines the Minimum Viable Product (MVP) features for the AI Soft
 - [ ] **Visual Progress Tracking**: Real-time Gantt/Kanban view showing the AI's internal task list and current progress.
 - [ ] **Agent Identity & Role Clarity**: Distinct UI avatars (Architect vs QA vs SRE vs Builder) for trust-building.
 
-### 5. Immediate Next Focus: Orchestration & Self-Healing
-- [ ] **SRE/Ops Agent ("Self-Healing Production Monitoring")**: Implement autonomous loop where SRE monitors project health, detects crashes, feeds stack traces to the Builder, and transparently patches/redeploys without user intervention.
+### 5. Orchestration & Self-Healing
+- [x] **SRE/Ops Agent ("Self-Healing Production Monitoring")**: Implement autonomous loop where SRE monitors project health, detects crashes, feeds stack traces to the Builder, and transparently patches/redeploys without user intervention.
+
+### 6. Immediate Next Focus: Sandbox Execution (Live Preview)
+- [ ] **Live Sandbox Preview UI**: Expose the backend `SandboxRunner` to the frontend via WebSockets/iframe so the client can visually see and interact with their generated application running in real-time, fulfilling the "WebContainer API / E2B integration" MVP requirement.

@@ -58,11 +58,10 @@ export const startSandbox = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'missionId is required' });
         }
 
-        const { SandboxRunner } = await import('../services/sandboxRunner');
-        const runner = new SandboxRunner();
+        const { sandboxRunnerInstance } = await import('../services/sandboxRunner');
 
         // Start asynchronously
-        runner.run(missionId).catch(err => {
+        sandboxRunnerInstance.run(missionId).catch(err => {
             console.error(`[SandboxRunner Controller] Error:`, err);
         });
 
@@ -73,5 +72,21 @@ export const startSandbox = async (req: Request, res: Response) => {
 
     } catch (error: any) {
         res.status(500).json({ error: 'Failed to start sandbox', details: error.message });
+    }
+};
+
+export const getSandboxStatus = async (req: Request, res: Response) => {
+    try {
+        const { missionId } = req.params;
+        if (!missionId) {
+            return res.status(400).json({ error: 'missionId is required' });
+        }
+
+        const { sandboxRunnerInstance } = await import('../services/sandboxRunner');
+        const status = sandboxRunnerInstance.getStatus(missionId);
+
+        res.status(200).json(status);
+    } catch (error: any) {
+        res.status(500).json({ error: 'Failed to get sandbox status', details: error.message });
     }
 };

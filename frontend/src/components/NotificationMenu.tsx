@@ -92,7 +92,12 @@ export function NotificationMenu() {
                     notifications.map((n) => (
                         <MenuItem
                             key={n._id}
-                            onClick={() => !n.read && handleMarkRead(n._id)}
+                            onClick={() => {
+                                if (!n.read) handleMarkRead(n._id);
+                                if (n.type === 'ACTION_REQUIRED') {
+                                    window.location.href = `/scrum?projectId=${n.projectId || 'MOCK-TEST-001'}`;
+                                }
+                            }}
                             sx={{
                                 whiteSpace: 'normal',
                                 py: 1.5,
@@ -100,14 +105,21 @@ export function NotificationMenu() {
                                 borderLeft: n.type === 'ACTION_REQUIRED' ? '4px solid #ef4444' : '4px solid transparent'
                             }}
                         >
-                            <Box>
-                                <Typography variant="caption" fontWeight="bold" color="primary">{n.sender}</Typography>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, width: '100%' }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Typography variant="caption" fontWeight="bold" color="primary">{n.sender}</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </Typography>
+                                </Box>
                                 <Typography variant="body2" sx={{ fontWeight: n.read ? 'normal' : 'medium' }}>
                                     {n.message}
                                 </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    {new Date(n.createdAt).toLocaleString()}
-                                </Typography>
+                                {n.type === 'ACTION_REQUIRED' && (
+                                    <Typography variant="caption" sx={{ color: '#ef4444', fontWeight: 'bold', mt: 0.5 }}>
+                                        Click to Review Gate
+                                    </Typography>
+                                )}
                             </Box>
                         </MenuItem>
                     ))

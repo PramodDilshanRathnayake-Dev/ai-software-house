@@ -47,10 +47,9 @@ class SREAgent {
         // Delay to simulate redeployment before switching status back
         await this.delay(2000);
         // Step 4: Relaunch the sandbox securely
-        const { SandboxRunner } = require('../../services/sandboxRunner'); // Lazy load to avoid circular dependency
-        const runner = new SandboxRunner();
+        const { sandboxRunnerInstance } = require('../../services/sandboxRunner'); // Lazy load to avoid circular dependency
         console.log(`[SRE] Starting Sandbox process for verified fix...`);
-        runner.run(missionId).catch((err) => {
+        sandboxRunnerInstance.run(missionId).catch((err) => {
             console.error(`[SRE] Failed to restart sandbox for ${missionId}:`, err);
         });
     }

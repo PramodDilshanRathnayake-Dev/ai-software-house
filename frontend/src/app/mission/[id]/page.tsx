@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { GlassCard } from '@/components/GlassCard';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import CodeIcon from '@mui/icons-material/Code';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -93,6 +94,33 @@ export default function MissionControlPage() {
                 method: 'POST',
             });
         } catch (err: any) {
+            console.error(err);
+        } finally {
+            setSprintLoading(false);
+        }
+    };
+
+    const handleApproveArchitecture = async () => {
+        setSprintLoading(true);
+        try {
+            // In a real app, this hits an endpoint to update status to IN_PROGRESS and unpause the agent
+            // For MVP mock, we simulate it
+            setMission((prev: any) => ({ ...prev, status: 'IN_PROGRESS' }));
+            setTimeout(() => fetchMission(), 2000);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setSprintLoading(false);
+        }
+    };
+
+    const handleApproveUI = async () => {
+        setSprintLoading(true);
+        try {
+            // Mock approval
+            setMission((prev: any) => ({ ...prev, status: 'DEVELOPMENT' }));
+            setTimeout(() => fetchMission(), 2000);
+        } catch (err) {
             console.error(err);
         } finally {
             setSprintLoading(false);
@@ -224,16 +252,42 @@ export default function MissionControlPage() {
                     <Box mb={4}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                             <Typography variant="h5" fontWeight="bold">Backlog & Sprint</Typography>
-                            <Button
-                                variant="contained"
-                                color="success"
-                                startIcon={sprintLoading ? <CircularProgress size={20} color="inherit" /> : <RocketLaunchIcon />}
-                                onClick={handleStartSprint}
-                                disabled={sprintLoading || mission.status === 'DEVELOPMENT'}
-                                sx={{ borderRadius: 2 }}
-                            >
-                                {mission.status === 'DEVELOPMENT' ? 'Sprint In Progress' : 'Start Builder Sprint'}
-                            </Button>
+                            {(mission.status === 'AWAITING_ARCH_APPROVAL' || mission.status === 'PLANNING') && (
+                                <GlassCard sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, border: '1px solid', borderColor: 'secondary.main', background: 'rgba(212, 175, 55, 0.05)' }}>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="secondary.main" fontWeight="bold">Action Required: Architecture Review</Typography>
+                                        <Typography variant="caption" color="text.secondary">The Strategist has drafted the plan. Please review and approve.</Typography>
+                                    </Box>
+                                    <Button variant="contained" color="secondary" onClick={handleApproveArchitecture} disabled={sprintLoading}>
+                                        {sprintLoading ? <CircularProgress size={20} /> : 'Approve & Execute'}
+                                    </Button>
+                                    <Button variant="outlined" color="inherit">Request Revision</Button>
+                                </GlassCard>
+                            )}
+                            {mission.status === 'AWAITING_UI_APPROVAL' && (
+                                <GlassCard sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, border: '1px solid', borderColor: 'primary.main', background: 'rgba(51, 65, 85, 0.2)' }}>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="primary.main" fontWeight="bold">Action Required: UI Review</Typography>
+                                        <Typography variant="caption" color="text.secondary">The Builder has generated the UI. Please review the live preview.</Typography>
+                                    </Box>
+                                    <Button variant="contained" color="primary" onClick={handleApproveUI} disabled={sprintLoading}>
+                                        {sprintLoading ? <CircularProgress size={20} /> : 'Approve UI'}
+                                    </Button>
+                                    <Button variant="outlined" color="inherit">Request Changes</Button>
+                                </GlassCard>
+                            )}
+                            {mission.status !== 'AWAITING_ARCH_APPROVAL' && mission.status !== 'AWAITING_UI_APPROVAL' && mission.status !== 'PLANNING' && (
+                                <Button
+                                    variant="contained"
+                                    color="success"
+                                    startIcon={sprintLoading ? <CircularProgress size={20} color="inherit" /> : <RocketLaunchIcon />}
+                                    onClick={handleStartSprint}
+                                    disabled={sprintLoading || mission.status === 'DEVELOPMENT'}
+                                    sx={{ borderRadius: 2 }}
+                                >
+                                    {mission.status === 'DEVELOPMENT' ? 'Sprint In Progress' : 'Start Builder Sprint'}
+                                </Button>
+                            )}
                         </Box>
 
                         <div className="space-y-4">

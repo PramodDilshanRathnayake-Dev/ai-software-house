@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { BrandLogo } from './BrandLogo';
 import { ThemeToggle } from './ThemeToggle';
 import Link from 'next/link';
@@ -11,12 +12,16 @@ import { NotificationMenu } from './NotificationMenu';
 
 export function Navbar() {
     const { user, logout } = useAuth();
+    const pathname = usePathname();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    // Hide global navbar on dashboard — it has its own internal nav
+    if (pathname === '/') return null;
 
     const handleLogout = () => {
         logout();

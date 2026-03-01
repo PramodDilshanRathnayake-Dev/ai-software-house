@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { triggerDeploy, reportCrash, startSandbox } from '../controllers/sre.controller';
+import { triggerDeploy, reportCrash, startSandbox, getSandboxStatus } from '../controllers/sre.controller';
 
 const router = Router();
 
@@ -11,5 +11,8 @@ router.post('/crash-report', reportCrash);
 
 // POST /api/sre/sandbox/:missionId 
 router.post('/sandbox/:missionId', startSandbox);
+
+// GET /api/sre/sandbox/:missionId/status
+router.get('/sandbox/:missionId/status', getSandboxStatus);
 
 export default router;

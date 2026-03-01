@@ -51,7 +51,7 @@ const MissionContextSchema = new mongoose_1.Schema({
     backlog: { type: [ScrumTaskSchema], default: [] },
     currentSprint: { type: String, default: 'Sprint 1' },
     sprintStatus: { type: String, enum: ['NOT_STARTED', 'ACTIVE', 'COMPLETED'], default: 'NOT_STARTED' },
-    status: { type: String, enum: ['INTAKE', 'DEVELOPMENT', 'AUDIT', 'DEPLOYMENT', 'DEPLOYED', 'HEALING'], default: 'INTAKE' },
+    status: { type: String, enum: ['INTAKE', 'PLANNING', 'AWAITING_ARCH_APPROVAL', 'AWAITING_UI_APPROVAL', 'DEVELOPMENT', 'AUDIT', 'DEPLOYMENT', 'DEPLOYED', 'HEALING'], default: 'INTAKE' },
     artifacts: {
         codeRepositoryUrl: { type: String, default: '' },
         proofOfWorkVideos: { type: [String], default: [] },

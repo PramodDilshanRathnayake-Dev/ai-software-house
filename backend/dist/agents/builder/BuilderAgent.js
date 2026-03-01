@@ -68,9 +68,22 @@ class BuilderAgent {
         if (!fs.existsSync(missionSandbox)) {
             fs.mkdirSync(missionSandbox, { recursive: true });
         }
+        // Check if there are specific UI tasks or if this is the first sprint post-architecture
+        const isInitialUiPhase = builderTasks.some(t => t.title.toLowerCase().includes('ui') || t.title.toLowerCase().includes('frontend') || t.description.toLowerCase().includes('interface'));
         // Process each task sequentially
         for (const task of builderTasks) {
             await this.executeTask(mission, task, missionSandbox);
+        }
+        // If this was a UI focused sprint (or just the first sprint), pause for CEO UI Review
+        if (isInitialUiPhase) {
+            console.log(`[Builder] UI Phase complete. Pausing for CEO UI Approval...`);
+            await MissionContext_1.default.findOneAndUpdate({ projectId: mission.projectId }, { $set: { status: 'AWAITING_UI_APPROVAL' } });
+            const io = (0, socket_1.getSocket)();
+            if (io) {
+                io.to(mission.projectId).emit('mission_updated', {
+                    status: 'AWAITING_UI_APPROVAL'
+                });
+            }
         }
     }
     async executeTask(mission, task, sandboxDir) {

@@ -26,7 +26,7 @@ export const handleClientIntake = async (req: Request, res: Response) => {
             projectId: uuidv4(),
             prd,
             backlog,
-            status: 'INTAKE',
+            status: 'AWAITING_ARCH_APPROVAL', // Start in approval gate state for CEO Review
             sharedState: {
                 projectName,
                 originalRequest: clientRequest

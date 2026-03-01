@@ -18,7 +18,7 @@ export interface IMissionContext extends Document {
     backlog: ScrumTask[];
     currentSprint: string;
     sprintStatus: 'NOT_STARTED' | 'ACTIVE' | 'COMPLETED';
-    status: 'INTAKE' | 'DEVELOPMENT' | 'AUDIT' | 'DEPLOYMENT' | 'DEPLOYED' | 'HEALING';
+    status: 'INTAKE' | 'PLANNING' | 'AWAITING_ARCH_APPROVAL' | 'AWAITING_UI_APPROVAL' | 'DEVELOPMENT' | 'AUDIT' | 'DEPLOYMENT' | 'DEPLOYED' | 'HEALING';
     artifacts: {
         codeRepositoryUrl: string;
         proofOfWorkVideos: string[];
@@ -48,7 +48,7 @@ const MissionContextSchema = new Schema<IMissionContext>({
     backlog: { type: [ScrumTaskSchema], default: [] },
     currentSprint: { type: String, default: 'Sprint 1' },
     sprintStatus: { type: String, enum: ['NOT_STARTED', 'ACTIVE', 'COMPLETED'], default: 'NOT_STARTED' },
-    status: { type: String, enum: ['INTAKE', 'DEVELOPMENT', 'AUDIT', 'DEPLOYMENT', 'DEPLOYED', 'HEALING'], default: 'INTAKE' },
+    status: { type: String, enum: ['INTAKE', 'PLANNING', 'AWAITING_ARCH_APPROVAL', 'AWAITING_UI_APPROVAL', 'DEVELOPMENT', 'AUDIT', 'DEPLOYMENT', 'DEPLOYED', 'HEALING'], default: 'INTAKE' },
     artifacts: {
         codeRepositoryUrl: { type: String, default: '' },
         proofOfWorkVideos: { type: [String], default: [] },
