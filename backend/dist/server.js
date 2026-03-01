@@ -10,6 +10,9 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const http_1 = __importDefault(require("http"));
 const socket_io_1 = require("socket.io");
 const socket_1 = require("./services/socket");
+const passport_1 = __importDefault(require("passport"));
+const express_session_1 = __importDefault(require("express-session"));
+const passport_2 = require("./config/passport");
 const strategist_routes_1 = __importDefault(require("./routes/strategist.routes"));
 const builder_routes_1 = __importDefault(require("./routes/builder.routes"));
 const auditor_routes_1 = __importDefault(require("./routes/auditor.routes"));
@@ -22,13 +25,36 @@ const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server, {
     cors: {
-        origin: 'http://localhost:3000', // Frontend port
+        origin: ['http://localhost:3000', 'http://localhost:3001'], // Frontend port
         methods: ['GET', 'POST']
     }
 });
 const port = process.env.PORT || 4000;
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+// Session is required for Passport OAuth strategies
+app.use((0, express_session_1.default)({
+    secret: process.env.JWT_SECRET || 'antigravity_secret_fallback',
+    resave: false,
+    saveUninitialized: false,
+}));
+app.use(passport_1.default.initialize());
+app.use(passport_1.default.session());
+(0, passport_2.configurePassport)();
+// Passport session serializers (required even if we primarily use JWTs for our own API)
+passport_1.default.serializeUser((user, done) => {
+    done(null, user.id);
+});
+passport_1.default.deserializeUser(async (id, done) => {
+    try {
+        const User = require('./models/User').default;
+        const user = await User.findById(id);
+        done(null, user);
+    }
+    catch (err) {
+        done(err, null);
+    }
+});
 // Routes
 app.use('/api/auth', auth_routes_1.default);
 app.use('/api/strategist', strategist_routes_1.default);

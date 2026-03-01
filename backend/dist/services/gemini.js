@@ -20,7 +20,7 @@ const getGeminiClient = () => {
     return ai;
 };
 exports.getGeminiClient = getGeminiClient;
-const generateContent = async (prompt, model = 'gemini-2.5-flash') => {
+const generateContent = async (prompt, model = 'gemini-flash-latest') => {
     const client = (0, exports.getGeminiClient)();
     try {
         const response = await client.models.generateContent({

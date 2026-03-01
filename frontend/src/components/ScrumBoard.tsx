@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { MoreVertical } from 'lucide-react';
-import { Dialog, DialogTitle, DialogContent, Typography, Box, Chip, Divider, Button, IconButton } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { MoreVertical, AlertTriangle } from 'lucide-react';
+import { Dialog, DialogTitle, DialogContent, Typography, Box, Chip, Divider, Button, IconButton, Snackbar, Alert } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CodeIcon from '@mui/icons-material/Code';
+import { io } from 'socket.io-client';
 
 const columns = [
     { id: 'TODO', title: 'BACKLOG', color: 'from-cyan-400 to-blue-500', shadow: 'shadow-[0_0_15px_rgba(34,211,238,0.3)]' },
@@ -15,6 +16,38 @@ const columns = [
 
 export function ScrumBoard({ tasks = [], projectId = 'All Projects' }: { tasks: any[], projectId?: string }) {
     const [selectedTask, setSelectedTask] = useState<any | null>(null);
+    const [notification, setNotification] = useState<{ show: boolean, message: string, severity: 'info' | 'warning' | 'error' | 'success' }>({ show: false, message: '', severity: 'info' });
+
+    useEffect(() => {
+        if (!projectId || projectId === 'All Projects') return;
+
+        // Connect to WebSocket Server for Real-Time SRE/Builder Updates
+        const socket = io('http://localhost:3001');
+
+        socket.on('connect', () => {
+            socket.emit('join_project', projectId);
+        });
+
+        socket.on('mission_updated', (data: { status: string, message?: string }) => {
+            if (data.status === 'HEALING' && data.message) {
+                setNotification({
+                    show: true,
+                    message: data.message,
+                    severity: 'warning'
+                });
+            } else if (data.status === 'DEPLOYED' && data.message) {
+                setNotification({
+                    show: true,
+                    message: data.message,
+                    severity: 'success'
+                });
+            }
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, [projectId]);
 
     const handleTaskClick = (task: any) => {
         setSelectedTask(task);
@@ -23,8 +56,44 @@ export function ScrumBoard({ tasks = [], projectId = 'All Projects' }: { tasks: 
     const handleClose = () => {
         setSelectedTask(null);
     };
+
+    const handleCloseNotification = (event?: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setNotification({ ...notification, show: false });
+    };
+
     return (
         <div className="max-w-[1600px] mx-auto p-4 md:p-8">
+            <Snackbar
+                open={notification.show}
+                autoHideDuration={6000}
+                onClose={handleCloseNotification}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={handleCloseNotification}
+                    severity={notification.severity}
+                    variant="filled"
+                    icon={notification.severity === 'warning' ? <AlertTriangle className="animate-pulse" /> : undefined}
+                    sx={{
+                        width: '100%',
+                        mt: 8,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                        border: '1px solid',
+                        borderColor: notification.severity === 'warning' ? 'warning.main' : 'success.main',
+                        backgroundColor: notification.severity === 'warning' ? '#4338ca' : '#059669', // Deep indigo for SRE Ops feel
+                        color: 'white',
+                        '& .MuiAlert-icon': {
+                            color: 'white'
+                        }
+                    }}
+                >
+                    {notification.message}
+                </Alert>
+            </Snackbar>
+
             <div className="flex justify-between items-end mb-8">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">
@@ -98,6 +167,11 @@ export function ScrumBoard({ tasks = [], projectId = 'All Projects' }: { tasks: 
                                         </p>
 
                                         <div className="flex items-center gap-2 mb-4">
+                                            {task.storyPoints && (
+                                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20" title={`${task.storyPoints} Story Points`}>
+                                                    {task.storyPoints} SP
+                                                </span>
+                                            )}
                                             {task.priority === 'HIGH' && (
                                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20">
                                                     HIGH
@@ -171,7 +245,7 @@ export function ScrumBoard({ tasks = [], projectId = 'All Projects' }: { tasks: 
                                 </Typography>
                             </Box>
 
-                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 4 }}>
+                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 4 }}>
                                 <Box>
                                     <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>Assignee</Typography>
                                     <Chip size="small" label={selectedTask.assignee || 'Unassigned'} color="secondary" variant="outlined" />
@@ -180,7 +254,29 @@ export function ScrumBoard({ tasks = [], projectId = 'All Projects' }: { tasks: 
                                     <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>Status</Typography>
                                     <Chip size="small" label={selectedTask.status} color="info" />
                                 </Box>
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>Story Points</Typography>
+                                    <Chip size="small" label={selectedTask.storyPoints ? `${selectedTask.storyPoints} SP` : 'Unestimated'} color="default" />
+                                </Box>
                             </Box>
+
+                            {selectedTask.subtasks && selectedTask.subtasks.length > 0 && (
+                                <Box sx={{ mb: 4 }}>
+                                    <Typography variant="subtitle2" color="primary.light" gutterBottom>
+                                        Subtasks
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                        {selectedTask.subtasks.map((sub: any, i: number) => (
+                                            <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <input type="checkbox" checked={sub.done} readOnly className="w-4 h-4 text-cyan-500 rounded border-slate-300 focus:ring-cyan-500" />
+                                                <Typography variant="body2" sx={{ textDecoration: sub.done ? 'line-through' : 'none', color: sub.done ? 'text.secondary' : 'text.primary' }}>
+                                                    {sub.title}
+                                                </Typography>
+                                            </Box>
+                                        ))}
+                                    </Box>
+                                </Box>
+                            )}
 
                             <Divider sx={{ my: 3 }} />
 

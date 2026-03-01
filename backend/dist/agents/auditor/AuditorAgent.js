@@ -110,7 +110,7 @@ Return a JSON object with two fields:
         };
         try {
             const response = await client.models.generateContent({
-                model: 'gemini-2.5-pro',
+                model: 'gemini-flash-latest',
                 contents: prompt,
                 config: {
                     responseMimeType: 'application/json',

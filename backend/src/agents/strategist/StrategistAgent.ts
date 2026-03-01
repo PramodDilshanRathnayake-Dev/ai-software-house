@@ -35,6 +35,7 @@ You are 'The Strategist', an expert Agile Product Manager.
 Take the following PRD and break it down into an initial Scrum Backlog for the development team.
 Return exactly an array of task objects matching the requested JSON schema.
 Each task should have a title, detailed description, status (TODO), and an assignee based on who should handle it (BUILDER for code/dev, AUDITOR for testing/QA, SRE for devops/infra).
+Also provide a relative storypoint estimate (1, 2, 3, 5, 8) in \`storyPoints\` and break the task down into a list of 2-5 actionable \`subtasks\` (with \`done\` flag as false).
 
 PRD:
 "${prd}"
@@ -52,9 +53,21 @@ PRD:
                     title: { type: 'STRING', description: 'Clear, actionable title for the task' },
                     description: { type: 'STRING', description: 'Detailed description, acceptance criteria, etc.' },
                     status: { type: 'STRING', enum: ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'], description: 'Initial status' },
-                    assignee: { type: 'STRING', enum: ['STRATEGIST', 'BUILDER', 'AUDITOR', 'SRE'], description: 'Agent assigned to this task' }
+                    assignee: { type: 'STRING', enum: ['STRATEGIST', 'BUILDER', 'AUDITOR', 'SRE'], description: 'Agent assigned to this task' },
+                    storyPoints: { type: 'NUMBER', description: 'Estimated effort in Fibonacci sequence (1, 2, 3, 5, 8)' },
+                    subtasks: {
+                        type: 'ARRAY',
+                        description: 'List of small actionable subtasks for this ticket',
+                        items: {
+                            type: 'OBJECT',
+                            properties: {
+                                title: { type: 'STRING', description: 'Action item description' },
+                                done: { type: 'BOOLEAN', description: 'Always false initially' }
+                            },
+                        }
+                    }
                 },
-                required: ['id', 'title', 'description', 'status', 'assignee']
+                required: ['id', 'title', 'description', 'status', 'assignee', 'storyPoints', 'subtasks']
             }
         };
 

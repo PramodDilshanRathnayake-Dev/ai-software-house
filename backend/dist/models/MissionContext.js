@@ -51,12 +51,13 @@ const MissionContextSchema = new mongoose_1.Schema({
     backlog: { type: [ScrumTaskSchema], default: [] },
     currentSprint: { type: String, default: 'Sprint 1' },
     sprintStatus: { type: String, enum: ['NOT_STARTED', 'ACTIVE', 'COMPLETED'], default: 'NOT_STARTED' },
-    status: { type: String, enum: ['INTAKE', 'DEVELOPMENT', 'AUDIT', 'DEPLOYMENT', 'DEPLOYED'], default: 'INTAKE' },
+    status: { type: String, enum: ['INTAKE', 'DEVELOPMENT', 'AUDIT', 'DEPLOYMENT', 'DEPLOYED', 'HEALING'], default: 'INTAKE' },
     artifacts: {
         codeRepositoryUrl: { type: String, default: '' },
         proofOfWorkVideos: { type: [String], default: [] },
         logs: { type: [String], default: [] },
     },
+    incidents: { type: [{ id: String, error: String, status: { type: String, enum: ['DETECTED', 'FIXING', 'RESOLVED'] }, createdAt: { type: Date, default: Date.now } }], default: [] },
     sharedState: { type: mongoose_1.Schema.Types.Mixed, default: {} },
 }, { timestamps: true });
 exports.default = mongoose_1.default.model('MissionContext', MissionContextSchema);

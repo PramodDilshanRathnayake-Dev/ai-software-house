@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { CircularProgress, Box, Typography } from '@mui/material';
 import ProtectedRoute from '@/components/ProtectedRoute';
-
+import { fetchWithAuth } from '@/lib/fetchWithAuth';
 
 function ScrumBoardContent() {
     const searchParams = useSearchParams();
@@ -18,7 +18,7 @@ function ScrumBoardContent() {
     useEffect(() => {
         const fetchTasks = async () => {
             try {
-                const response = await fetch('http://localhost:8000/api/strategist/missions');
+                const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/strategist/missions`);
                 const data = await response.json();
 
                 if (projectId) {

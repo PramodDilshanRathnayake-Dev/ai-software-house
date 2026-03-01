@@ -47,7 +47,7 @@ function LoginForm() {
         setError('');
 
         try {
-            const res = await fetch('http://localhost:8000/api/auth/login', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ function LoginForm() {
                         variant="outlined"
                         fullWidth
                         size="large"
-                        href="http://localhost:8000/api/auth/google"
+                        href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/google`}
                         sx={{
                             mb: 3,
                             color: 'text.primary',

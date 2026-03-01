@@ -18,12 +18,13 @@ export interface IMissionContext extends Document {
     backlog: ScrumTask[];
     currentSprint: string;
     sprintStatus: 'NOT_STARTED' | 'ACTIVE' | 'COMPLETED';
-    status: 'INTAKE' | 'DEVELOPMENT' | 'AUDIT' | 'DEPLOYMENT' | 'DEPLOYED';
+    status: 'INTAKE' | 'DEVELOPMENT' | 'AUDIT' | 'DEPLOYMENT' | 'DEPLOYED' | 'HEALING';
     artifacts: {
         codeRepositoryUrl: string;
         proofOfWorkVideos: string[];
         logs: string[];
     };
+    incidents?: { id: string; error: string; status: 'DETECTED' | 'FIXING' | 'RESOLVED'; createdAt: Date }[];
     sharedState: Record<string, any>;
     createdAt: Date;
     updatedAt: Date;
@@ -47,12 +48,13 @@ const MissionContextSchema = new Schema<IMissionContext>({
     backlog: { type: [ScrumTaskSchema], default: [] },
     currentSprint: { type: String, default: 'Sprint 1' },
     sprintStatus: { type: String, enum: ['NOT_STARTED', 'ACTIVE', 'COMPLETED'], default: 'NOT_STARTED' },
-    status: { type: String, enum: ['INTAKE', 'DEVELOPMENT', 'AUDIT', 'DEPLOYMENT', 'DEPLOYED'], default: 'INTAKE' },
+    status: { type: String, enum: ['INTAKE', 'DEVELOPMENT', 'AUDIT', 'DEPLOYMENT', 'DEPLOYED', 'HEALING'], default: 'INTAKE' },
     artifacts: {
         codeRepositoryUrl: { type: String, default: '' },
         proofOfWorkVideos: { type: [String], default: [] },
         logs: { type: [String], default: [] },
     },
+    incidents: { type: [{ id: String, error: String, status: { type: String, enum: ['DETECTED', 'FIXING', 'RESOLVED'] }, createdAt: { type: Date, default: Date.now } }], default: [] },
     sharedState: { type: Schema.Types.Mixed, default: {} },
 }, { timestamps: true });
 

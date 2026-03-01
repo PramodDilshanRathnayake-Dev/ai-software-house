@@ -57,3 +57,28 @@ This document outlines the Minimum Viable Product (MVP) features for the AI Soft
 
 ### 7. System Interactivity (Optional MVP / Fast Follow)
 - [ ] Real-time WebSocket server for live agent typing/progress updates on the frontend.
+
+## 🚀 Client-Centric Product Enhancements (Platform V2)
+*Strategic pivot from a "Development Tool" to a "Managed IT Outcomes Product".*
+
+### 1. Critical Missing Features
+- [ ] **Persistent State**: Supabase/PostgreSQL backend for chat history, code snippets, and session state.
+- [ ] **Sandbox Execution (Live Preview)**: WebContainer API or E2B integration for live browser-based app previews.
+
+### 2. Trust & Transparency ("Audit Trail")
+- [ ] **Verifiable Proof of Work**: Links to Requirement (PM Agent), Test Plan (QA Agent), and Loom-style UI test proofs (Browser Agent).
+- [ ] **Cost & Token Transparency**: "Burn Rate" dashboard showing Gemini API vs Human Dev cost comparisons.
+- [ ] **Error Handling & "Self-Healing" Transparency**: Gracefully show bugs being actively resolved (e.g., "Refactoring code to fix API issue") instead of console errors.
+
+### 3. Client Control & Export
+- [ ] **"Human-in-the-Loop" Gatekeeping**: Review policies pausing for client sign-off before expensive tasks (e.g., Database Migrations).
+- [ ] **Export & Deployment Pipeline**: One-click "Push to Repo", Zip Export, and Vercel/Netlify deployment hooks.
+- [ ] **Contextual Documentation**: Auto-generating README.md and "How to run" guides upon feature completion.
+
+### 4. Premium Client Experience
+- [ ] **"Architect" Discovery Flow**: Structured intake form (Tech stack, App type, Target Audience) rather than a blank chat.
+- [ ] **Visual Progress Tracking**: Real-time Gantt/Kanban view showing the AI's internal task list and current progress.
+- [ ] **Agent Identity & Role Clarity**: Distinct UI avatars (Architect vs QA vs SRE vs Builder) for trust-building.
+
+### 5. Immediate Next Focus: Orchestration & Self-Healing
+- [ ] **SRE/Ops Agent ("Self-Healing Production Monitoring")**: Implement autonomous loop where SRE monitors project health, detects crashes, feeds stack traces to the Builder, and transparently patches/redeploys without user intervention.
